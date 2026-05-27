@@ -1,8 +1,11 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../lib/services/api_service.dart';
 import '../lib/services/qibla_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
   group('Qibla Service Tests', () {
     final qiblaService = QiblaService();
 
