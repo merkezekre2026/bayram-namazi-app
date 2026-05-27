@@ -6,11 +6,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   static const String _baseUrl = 'https://ezanvakti.imsakiyem.com/api';
   static const String _cacheKeyPrefix = 'cached_prayer_times_';
+  static const Map<String, String> _headers = {
+    'Accept': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  };
 
   // Get countries list
   Future<List<Map<String, dynamic>>> getCountries() async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/locations/countries'));
+      final response = await http.get(
+        Uri.parse('$_baseUrl/locations/countries'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true && data['data'] != null) {
@@ -21,7 +28,7 @@ class ApiService {
           }).toList();
         }
       }
-      throw HttpException('Failed to load countries: ${response.statusCode}');
+      throw HttpException('Failed to load countries: ${response.statusCode} - ${response.body}');
     } catch (e) {
       // Fallback local list of common countries
       return [
@@ -33,7 +40,10 @@ class ApiService {
 
   // Get states (cities) under countryId
   Future<List<Map<String, dynamic>>> getStates(String countryId) async {
-    final response = await http.get(Uri.parse('$_baseUrl/locations/states?countryId=$countryId'));
+    final response = await http.get(
+      Uri.parse('$_baseUrl/locations/states?countryId=$countryId'),
+      headers: _headers,
+    );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data['success'] == true && data['data'] != null) {
@@ -44,12 +54,15 @@ class ApiService {
         }).toList();
       }
     }
-    throw HttpException('Failed to load cities: ${response.statusCode}');
+    throw HttpException('Failed to load cities: ${response.statusCode} - ${response.body}');
   }
 
   // Get districts under stateId
   Future<List<Map<String, dynamic>>> getDistricts(String stateId) async {
-    final response = await http.get(Uri.parse('$_baseUrl/locations/districts?stateId=$stateId'));
+    final response = await http.get(
+      Uri.parse('$_baseUrl/locations/districts?stateId=$stateId'),
+      headers: _headers,
+    );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data['success'] == true && data['data'] != null) {
@@ -60,7 +73,7 @@ class ApiService {
         }).toList();
       }
     }
-    throw HttpException('Failed to load districts: ${response.statusCode}');
+    throw HttpException('Failed to load districts: ${response.statusCode} - ${response.body}');
   }
 
   // Get weekly prayer times for districtId, with offline caching support
@@ -70,7 +83,8 @@ class ApiService {
 
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/prayer-times/$districtId/weekly')
+        Uri.parse('$_baseUrl/prayer-times/$districtId/weekly'),
+        headers: _headers,
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -103,7 +117,7 @@ class ApiService {
           return parsedList;
         }
       }
-      throw HttpException('Failed to load prayer times: ${response.statusCode}');
+      throw HttpException('Failed to load prayer times: ${response.statusCode} - ${response.body}');
     } catch (e) {
       // Load from cache if offline or error occurs
       final cachedData = prefs.getString(cacheKey);
